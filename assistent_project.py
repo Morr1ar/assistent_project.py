@@ -105,12 +105,18 @@ class Assistant:
         self.text_save(self.time_converter(self.text), filename)
 
     def reminder(self):
-        file = open('reminder_list.txt')
-        for line_text in range(len(file)):
-            if file.readline()[line_text] == str(datetime.date.today()):
-                self.talk(file.readline(line_text - 1))
-            else:
-                self.talk("На сегодня напоминаний нет")
+        file = open('reminder_list.txt', 'r')
+        if str(datetime.date.today()) in set(file):
+            numb = 1
+            for text in file.readlines():
+                if text == str(datetime.date.today()):
+                    self.talk(file.readline(numb - 1))
+                    numb += 1
+                else:
+                    numb += 1
+                    continue
+        else:
+            self.talk("На сегодня напоминаний нет")
         file.close()
 
 
@@ -128,6 +134,7 @@ class Assistant:
         text = text.replace('ноября', '11')
         text = text.replace('декабря', '12')
         text = text.replace(' ', '-')
+        return text
 
 
     def cleaner(self, text):
