@@ -11,7 +11,6 @@ from pyowm import OWM
 from pyowm.utils.config import get_default_config
 import webbrowser  # Модуль для выполнения запросов и открытия вкладок в вашем браузере
 import configparser
-from pathlib import Path
 
 class Assistant:
     settings = configparser.ConfigParser()
@@ -36,13 +35,13 @@ class Assistant:
             ('привет', 'добрый день', 'здравствуй'): self.hello,
             ('пока', 'вырубись'): self.quite,
             ('выключи компьютер', 'выруби компьютер'): self.shut,
-            ('запиши контак', 'запиши номер телефона'): self.contacts_list_save,
-            ('открой калькулятор', 'посчитай', 'включи калькулятор', 'запусти калькулятор'): self.colculator,
-            ('открой заметки', 'запомни', 'запомни и напомни попозже'): self.save_reminder,
-            ('что на сегодня заплонированно', 'какие сегодня дела', 'есть какие нибудь напоминания на сегодня?',
-            'есть какие нибудь заметки на сегодня?', 'открой заметки на сегодня', 'открой сегоднишние заметки'): self.reminder,
+            ('запиши контакт', 'запиши номер телефона'): self.contacts_list_save,
+            ('запомни', 'запомни и напомни попозже', 'сделай заметку'): self.save_reminder,
+            ('посчитай', 'включи калькулятор', 'запусти калькулятор', 'калькулятор'): self.colculator,
+            ('заметки', 'что на сегодня заплонированно', 'какие сегодня дела', 'есть какие нибудь напоминания на сегодня?',
+            'есть какие нибудь заметки на сегодня?', 'открой заметки на сегодня', 'открой сегодняшние заметки'): self.reminder,
             ('какая погода', 'погода', 'погода на улице', 'какая погода на улице'): self.weather,
-            ('напомни номер телефона', 'открой список контактов'): self.contacts_reminder,
+            ('номер телефона', 'список контактов', 'контакты'): self.contacts_reminder,
         }
         # список имен и слов на которые откликается ассистент
         self.ndels = ['морган', 'морген', 'моргэн', 'морг', 'ладно', 'не могла бы ты', 'пожалуйста',
@@ -55,12 +54,12 @@ class Assistant:
             'пока', 'вырубись',
             'выключи компьютер', 'выруби компьютер',
             'какая погода', 'погода', 'погода на улице', 'какая погода на улице',
-            'запиши контак', 'запиши номер телефона',
-            'открой калькулятор', 'посчитай', 'включи калькулятор', 'запусти калькулятор',
-            'открой заметки', 'запомни', 'запомни и напомни попозже',
-            'что на сегодня заплонированно', 'какие сегодня дела', 'есть какие нибудь напоминания на сегодня?',
-            'есть какие нибудь заметки на сегодня?', 'открой заметки на сегодня', 'открой сегоднишние заметки',
-            'напомни номер телефона', 'открой список контактов',
+            'запиши', 'запиши контакт', 'запиши номер телефона',
+            'запомни', 'запомни и напомни попозже', 'сделай заметку',
+            'посчитай', 'включи калькулятор', 'запусти калькулятор', 'калькулятор',
+            'заметки', 'что на сегодня заплонированно', 'какие сегодня дела', 'есть какие нибудь напоминания на сегодня?',
+            'есть какие нибудь заметки на сегодня?', 'открой заметки на сегодня', 'открой сегодняшние заметки',
+            'номер телефона', 'список контактов', 'контакты',
         ]
 
     def text_save(self, text, file_name):   # метод записывания текста в выбранный файл
@@ -69,12 +68,13 @@ class Assistant:
         file.write(text + "\n")
         file.close()
 
+    #Должен запускаться по команде запиши номер телефона
     def contacts_list_save(self):   # метод записывания нового контакта в файл с контактами
         filename = "numbers_list.txt"
         index = False
         self.talk("Как назвать контакт?")
         self.listen()
-        text_list = [line.strip() for line in Path(filename).read_text(encoding="utf-8").replace("\n", " ").split()]
+        text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
         for i in range(len(text_list)):
             k = fuzz.ratio(self.text, text_list[i])
             if (k > 70) & (k > self.j):
@@ -107,7 +107,7 @@ class Assistant:
         filename = 'numbers_list.txt'
         self.talk(choice(["Чей номер вам напомнить?", "Чей номер вы хотите знать?", "Чей номер вам нужен?"]))
         self.listen()
-        text_list = [line.strip() for line in Path(filename).read_text(encoding="utf-8").replace("\n", " ").split()]
+        text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
         for i in range(len(text_list)):
             k = fuzz.ratio(self.text, text_list[i])
             if (k > 70) & (k > self.j):
@@ -150,6 +150,7 @@ class Assistant:
 
     def save_reminder(self):    # метод записывания новой заметки в файл с заметками
         filename = "reminder_list.txt"
+        self.talk("Слушаю вас")
         self.listen()
         if self.text.startswith(('надо', 'нужно', 'напомни', 'напомни мне')):    # вырезает ненужные слова из сказанного текста
             for i in ('надо', 'нужно', 'напомни', 'напомни мне'):
@@ -159,16 +160,20 @@ class Assistant:
         self.talk("Когда напомнить?")
         self.listen()
         self.text_save(self.time_converter(self.text), filename)
+        self.talk("Во сколько?")
+        self.listen()
+        self.text_save(self.text, filename)
+
 
     def reminder(self): # напоминание заметок на сегодня
         filename = 'reminder_list.txt'
-        text_list = [line.strip() for line in Path(filename).read_text(encoding="utf-8").replace("\n", " ").split()]
-        date_today = str(datetime.date.today())
+        text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
+        date_today = str(datetime.date.today())[5:]
         if date_today in text_list:
             self.talk(choice(['Вам сегодня надо:', 'В списке ваших дел на сегодня:']))
             for numb in range(len(text_list)):
                 if date_today in text_list[numb]:
-                    self.talk(text_list[numb - 1])
+                    self.talk(text_list[numb - 1] + ' ' + text_list[numb + 1] )
                 else:
                     continue
         else:
@@ -211,6 +216,7 @@ class Assistant:
     def recognizer(self):  # метод распознавания речи /  главная функция
         self.text = self.cleaner(self.listen())
         print(self.text)
+        print('______')
 
         if self.text.startswith(('открой', 'запусти', 'зайди', 'зайди на')):    # если просьба начинается с этих команд выполняется специальная функция
             self.opener(self.text)
@@ -230,7 +236,7 @@ class Assistant:
     def opener(self, task):     # метод для выполнения специальных функций
         links = {
             ('youtube', 'ютуб', 'ютюб'): 'https://youtube.com/',
-            ('вк', 'вконтакте', 'контакт', 'vk'): 'https:vk.com/feed',
+            ('вк', 'вконтакте', 'vk'): 'https:vk.com/feed',
             ('браузер', 'интернет', 'browser'): 'https://google.com/',
             ('insta', 'instagram', 'инста', 'инсту'): 'https://www.instagram.com/',
             ('почта', 'почту', 'gmail', 'гмейл', 'гмеил', 'гмаил'): 'http://gmail.com/',
@@ -329,6 +335,6 @@ class Assistant:
 
 
 Assistant().cfile()
-
-while True:  # Бесконечный цикл
-    Assistant().recognizer()  # Вызов функции recognizer()
+def start():    # функция старт
+    while True:  # Бесконечный цикл
+        Assistant().recognizer()  # Вызов функции recognizer()
