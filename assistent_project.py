@@ -39,7 +39,7 @@ class Assistant:
             ('запомни', 'запомни и напомни попозже', 'сделай заметку'): self.save_reminder,
             ('посчитай', 'включи калькулятор', 'запусти калькулятор', 'калькулятор'): self.colculator,
             ('заметки', 'что на сегодня заплонированно', 'какие сегодня дела', 'есть какие нибудь напоминания на сегодня?',
-            'есть какие нибудь заметки на сегодня?', 'открой заметки на сегодня', 'открой сегодняшние заметки'): self.reminder,
+            'есть какие нибудь заметки на сегодня?', 'заметки на сегодня', 'сегодняшние заметки'): self.reminder,
             ('какая погода', 'погода', 'погода на улице', 'какая погода на улице'): self.weather,
             ('номер телефона', 'список контактов', 'контакты'): self.contacts_reminder,
         }
@@ -58,7 +58,7 @@ class Assistant:
             'запомни', 'запомни и напомни попозже', 'сделай заметку',
             'посчитай', 'включи калькулятор', 'запусти калькулятор', 'калькулятор',
             'заметки', 'что на сегодня заплонированно', 'какие сегодня дела', 'есть какие нибудь напоминания на сегодня?',
-            'есть какие нибудь заметки на сегодня?', 'открой заметки на сегодня', 'открой сегодняшние заметки',
+            'есть какие нибудь заметки на сегодня?', 'заметки на сегодня', 'сегодняшние заметки',
             'номер телефона', 'список контактов', 'контакты',
         ]
 
@@ -68,7 +68,6 @@ class Assistant:
         file.write(text + "\n")
         file.close()
 
-    #Должен запускаться по команде запиши номер телефона
     def contacts_list_save(self):   # метод записывания нового контакта в файл с контактами
         filename = "numbers_list.txt"
         index = False
@@ -81,8 +80,8 @@ class Assistant:
                 self.text = text_list[i]
                 self.j = k
         if self.text in text_list:  # проверяет есть ли данный контакт в списке контактов
-             for numb in range(len(text_list)):      # если есть то записывает новый номер рядом с имеющимся
-                if self.text in text_list[numb]:
+             for numb in range(len(text_list)):
+                if self.text in text_list[numb]:    # если есть, то записывает новый номер рядом с имеющимся
                     self.talk("Диктуй номер")
                     self.listen()
                     file = open(filename, 'r')
@@ -195,6 +194,18 @@ class Assistant:
         text = str("-".join(text.split()[::-1]))
         return text
 
+    def del_text(self, text, file_name):
+        text_list = [line.strip() for line in open(file_name, encoding="utf-8").readlines()]
+        for numb in range(len(text_list)):
+            if text == text_list[numb]:
+                file = open(file_name, "r")
+                old_text = file.read()
+                new_text = old_text.replace(text_list[numb], "")
+                file.close()
+                file = open(file_name, 'w')
+                file.write(new_text)
+                file.close()
+                break
 
     def cleaner(self, text):
         self.text = text
