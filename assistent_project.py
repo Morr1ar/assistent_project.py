@@ -79,28 +79,32 @@ class Assistant:
             if (k > 70) & (k > self.j):
                 self.text = text_list[i]
                 self.j = k
-        if self.text in text_list:  # проверяет есть ли данный контакт в списке контактов
-             for numb in range(len(text_list)):
-                if self.text in text_list[numb]:    # если есть, то записывает новый номер рядом с имеющимся
-                    self.talk("Диктуй номер")
-                    self.listen()
-                    file = open(filename, 'r')
-                    old_text = file.read()
-                    new_text = old_text.replace(text_list[numb + 1], text_list[numb + 1] + "#" + self.text)
-                    file.close()
-                    file = open(filename, 'w')
-                    file.write(new_text)
-                    file.close()
-                    break
-                else:
-                    continue
+        if self.text in text_list:  # проверяет есть ли данный контакт в списке контактов. если есть, то записывает новый номер рядом с имеющимся
+            self.talk("Диктуй номер")
+            self.listen()
+            if self.number_check(self.text) == True:
+                file = open(filename, encoding="utf-8")
+                old_text = file.read()
+                text_list = old_text.split()
+                numb = text_list.index(self.text)
+
+                new_text = old_text.replace(text_list[numb + 1], text_list[numb + 1] + "#" + self.text)
+                file.close()
+
+                file = open(filename, 'w')
+                file.write(new_text)
+                file.close()
+            else:
+                self.talk("Некорректно назван номер!")
         else:   # если нет записывает новый контакт
-            index = True
-        if index:
             self.text_save(str(self.text), filename)
             self.talk("Диктуй номер")
             self.listen()
-            self.text_save(self.text, filename)
+            if self.number_check(self.text) == True:
+                print(self.text)
+                self.text_save(self.text, filename)
+            else:
+                self.talk("Некорректно назван номер!")
 
     def contacts_reminder(self):
         filename = 'numbers_list.txt'
@@ -129,21 +133,15 @@ class Assistant:
             self.listen()
             if self.text == 'Завершить':
                 break
-            self.text = self.text.split()
-            if '+' in self.text or '-' in self.text or '*' in self.text or '/' in self.text:
-                x = int(self.text[0])
-                y = int(self.text[2])
-                if self.text[1] == '+':
-                    self.talk("%.2f" % (x + y))
-                elif self.text[1] == '-':
-                    self.talk("%.2f" % (x - y))
-                elif self.text[1] == '*':
-                    self.talk("%.2f" % (x * y))
-                elif self.text[1] == '/':
-                    if y != 0:
-                        self.talk("%.2f" % (x / y))
-                    else:
-                        self.talk("На ноль делить я еще не научилась!")
+            text = self.text.split(" ")
+            a = text[0]
+            op = text[1]
+            b = text[2]
+            if op in ('+', '-', '*', '/'):
+                if op + b != "/0":
+                    self.talk(eval(a + op + b))
+                else:
+                    self.talk("На ноль делить я еще не научилась!")
             else:
                 self.talk("Не поняла!")
 
@@ -172,7 +170,7 @@ class Assistant:
             self.talk(choice(['Вам сегодня надо:', 'В списке ваших дел на сегодня:']))
             for numb in range(len(text_list)):
                 if date_today in text_list[numb]:
-                    self.talk(text_list[numb - 1] + ' ' + text_list[numb + 1] )
+                    self.talk(text_list[numb - 1] + ' в ' + text_list[numb + 1] )
                 else:
                     continue
         else:
@@ -194,18 +192,28 @@ class Assistant:
         text = str("-".join(text.split()[::-1]))
         return text
 
-    def del_text(self, text, file_name):
-        text_list = [line.strip() for line in open(file_name, encoding="utf-8").readlines()]
-        for numb in range(len(text_list)):
-            if text == text_list[numb]:
-                file = open(file_name, "r")
-                old_text = file.read()
-                new_text = old_text.replace(text_list[numb], "")
-                file.close()
-                file = open(file_name, 'w')
-                file.write(new_text)
-                file.close()
-                break
+    def del_text(self, text, filename):
+        file = open(filename, encoding="utf-8")
+        old_text = file.read()
+
+        new_text = old_text.replace(text, "")
+        file.close()
+
+        file = open(filename, 'w')
+        file.write(new_text)
+        file.close()
+
+    def del_contact(self):
+        pass
+
+    def del_reminder(self):
+        pass
+
+    def number_check(self, number):
+        if len(number) == 15:
+            return True
+        else:
+            return False
 
     def cleaner(self, text):
         self.text = text
@@ -283,7 +291,7 @@ class Assistant:
         self.talk(choice(['Надеюсь мы скоро увидимся', 'Рада была помочь', 'Пока пока', 'Я отключаюсь']))
         self.engine.stop()
         system('cls')
-        sys.exit(0)
+        #sys.exit(0)
 
     def shut(self):     # метод выключения компьютера по команде с подтверждением
         self.talk("Подтвердите действие!")
