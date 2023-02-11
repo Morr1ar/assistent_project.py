@@ -42,6 +42,8 @@ class Assistant:
             'есть какие нибудь заметки на сегодня?', 'заметки на сегодня', 'сегодняшние заметки'): self.reminder,
             ('какая погода', 'погода', 'погода на улице', 'какая погода на улице'): self.weather,
             ('номер телефона', 'список контактов', 'контакты'): self.contacts_reminder,
+            ('удалить контакт', 'удали контакт'): self.del_contact,
+            ('удалить заметку', 'удали заметку'): self.del_reminder,
         }
         # список имен и слов на которые откликается ассистент
         self.ndels = ['морган', 'морген', 'моргэн', 'морг', 'ладно', 'не могла бы ты', 'пожалуйста',
@@ -60,6 +62,8 @@ class Assistant:
             'заметки', 'что на сегодня заплонированно', 'какие сегодня дела', 'есть какие нибудь напоминания на сегодня?',
             'есть какие нибудь заметки на сегодня?', 'заметки на сегодня', 'сегодняшние заметки',
             'номер телефона', 'список контактов', 'контакты',
+            'удалить контакт', 'удали контакт',
+            'удалить заметку', 'удали заметку',
         ]
 
     def text_save(self, text, file_name):   # метод записывания текста в выбранный файл
@@ -88,7 +92,7 @@ class Assistant:
                 text_list = old_text.split()
                 numb = text_list.index(self.text)
 
-                new_text = old_text.replace(text_list[numb + 1], text_list[numb + 1] + "#" + self.text)
+                new_text = old_text.replace(text_list[numb + 1], text_list[numb + 1] + "%" + self.text)
                 file.close()
 
                 file = open(filename, 'w')
@@ -119,7 +123,7 @@ class Assistant:
         if self.text in text_list:
             for numb in range(len(text_list)):
                 if self.text in text_list[numb]:
-                    numbers_list = text_list[numb + 1].split("#")
+                    numbers_list = text_list[numb + 1].split("%")
                     if len(numbers_list) > 1:
                         self.talk("Вот список номеров этого контакта:")     # он только печатает список номеров если их несколько
                         for i in range(len(numbers_list)):
@@ -176,7 +180,7 @@ class Assistant:
         else:
             self.talk(choice(["На сегодня напоминаний нет", "На сегодня дел нет", "Сегодня дел никаких нет"]))
 
-    def time_converter(self, text):     # метод изменения текста в дату. пример: 12 января 2023 --> 2023-01-12
+    def time_converter(self, text):     # метод изменения текста в дату. пример: 12 января 2023 --> 01-12
         text = text.replace('января', '01')
         text = text.replace('февраля', '02')
         text = text.replace('марта', '03')
@@ -192,22 +196,105 @@ class Assistant:
         text = str("-".join(text.split()[::-1]))
         return text
 
-    def del_text(self, text, filename):
-        file = open(filename, encoding="utf-8")
-        old_text = file.read()
+    def time_back_converter(self, text):
+        text = " ".join(text.split("-")[::-1])
+        text = text.replace('01', 'января')
+        text = text.replace('02', 'февраля')
+        text = text.replace('03', 'марта')
+        text = text.replace('04', 'апреля')
+        text = text.replace('05', 'мая')
+        text = text.replace('06', 'июня')
+        text = text.replace('07', 'июля')
+        text = text.replace('08', 'августа')
+        text = text.replace('09', 'сентября')
+        text = text.replace('10', 'октября')
+        text = text.replace('11', 'ноября')
+        text = text.replace('12', 'декабря')
+        return text
 
-        new_text = old_text.replace(text, "")
+    def del_text(self, index, count, filename):
+        file = open(filename)
+        text = file.readlines()
+
+        del text[index:index + count]
         file.close()
 
         file = open(filename, 'w')
-        file.write(new_text)
+        file.write("".join(text))
         file.close()
 
     def del_contact(self):
-        pass
+        filename = 'numbers_list.txt'
+        self.talk(choice(["Чей контакт хотите удалить?", "Чей номер вы хотите удалить?", "Чей номер вам не нужен?"]))
+        self.listen()
+        text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
+        for i in range(len(text_list)):
+            k = fuzz.ratio(self.text, text_list[i])
+            if (k > 70) & (k > self.j):
+                self.text = text_list[i]
+                self.j = k
+        if self.text in text_list:
+            for numb in range(len(text_list)):
+                if self.text in text_list[numb]:
+                    self.del_text(numb, 2, filename)
+                    self.talk(choice(["Номер удален!", "Уже удалила.", "Сделано!"]))
+                else:
+                    continue
 
-    def del_reminder(self):
-        pass
+    def del_reminder(self):     # доделать
+        filename = 'reminder_list.txt'
+
+        self.talk(choice(["Желаете прослушать все исеющиеся заметки?", "Хотите прослушать все имеющиеся заметки?"]))
+        self.listen()
+        list = ['Хочу', 'Желаю', 'Да']
+        for i in range(len(list)):
+            k = fuzz.ratio(self.text, list[i])
+            if (k > 70) & (k > self.j):
+                self.text = list[i]
+                self.j = k
+        if self.text in list:
+            self.all_reminder()
+
+        self.talk(choice(["Какая дата?", "Какое число?"]))
+        self.listen()
+        text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
+        for i in range(len(text_list)):
+            k = fuzz.ratio(self.text, text_list[i])
+            if (k > 70) & (k > self.j):
+                self.text = text_list[i]
+                self.j = k
+        if self.text in text_list:
+            for numb in range(len(text_list)):
+                if self.text in text_list[numb]:
+                    self.del_text(numb, 2, filename)
+                    self.talk(choice(["Номер удален!", "Уже удалила.", "Сделано!"]))
+                else:
+                    continue
+
+    def del_reminder_init(self):
+        filename = 'reminder_list.txt'
+        text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
+        month = int(str(datetime.date.today())[5:7])
+        day = int(str(datetime.date.today())[8:10])
+        for line in range(1, len(text_list), 3):
+            date = text_list[line]
+            if (month > int(date[:2])) or ((month == int(date[:2])) and (day > int(date[3:]))):
+                self.del_text(line - 1, 3, filename)
+            else:
+                continue
+
+    def all_reminder(self):
+        filename = 'reminder_list.txt'
+        text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
+
+        if len(text_list) >= 3:
+            self.talk(choice(['Вам сегодня надо:', 'В списке ваших дел на сегодня:']))
+
+            for numb in range(1, len(text_list), 3):
+                self.talk(self.time_back_converter(text_list[numb]) + " " + text_list[numb - 1] + ' в ' + text_list[numb + 1])
+
+        else:
+            self.talk(choice(["На сегодня напоминаний нет", "На сегодня дел нет", "Сегодня дел никаких нет"]))
 
     def number_check(self, number):
         if len(number) == 15:
@@ -248,7 +335,7 @@ class Assistant:
         self.engine.runAndWait()
         self.engine.stop()
 
-    def time(self):     # метод который сообщает текущее время
+    def time(self):     # метод, который сообщает текущее время
         now = datetime.datetime.now()
         self.talk("Сейчас " + str(now.hour) + ":" + str(now.minute))
 
@@ -355,5 +442,6 @@ class Assistant:
 
 Assistant().cfile()
 def start():    # функция старт
+    Assistant().del_reminder_init()
     while True:  # Бесконечный цикл
         Assistant().recognizer()  # Вызов функции recognizer()
