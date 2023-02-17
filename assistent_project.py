@@ -11,6 +11,10 @@ from pyowm import OWM
 from pyowm.utils.config import get_default_config
 import webbrowser  # Модуль для выполнения запросов и открытия вкладок в вашем браузере
 import configparser
+import time
+
+active = False
+
 
 class Assistant:
     settings = configparser.ConfigParser()
@@ -37,13 +41,13 @@ class Assistant:
             ('выключи компьютер', 'выруби компьютер'): self.shut,
             ('запиши контакт', 'запиши номер телефона'): self.contacts_list_save,
             ('запомни', 'запомни и напомни попозже', 'сделай заметку'): self.save_reminder,
-            ('посчитай', 'включи калькулятор', 'запусти калькулятор', 'калькулятор'): self.colculator,
             ('заметки', 'что на сегодня заплонированно', 'какие сегодня дела', 'есть какие нибудь напоминания на сегодня?',
             'есть какие нибудь заметки на сегодня?', 'заметки на сегодня', 'сегодняшние заметки'): self.reminder,
-            ('какая погода', 'погода', 'погода на улице', 'какая погода на улице'): self.weather,
             ('номер телефона', 'список контактов', 'контакты'): self.contacts_reminder,
             ('удалить контакт', 'удали контакт'): self.del_contact,
             ('удалить заметку', 'удали заметку'): self.del_reminder,
+            ('какая погода', 'погода', 'погода на улице', 'какая погода на улице'): self.weather,
+            ('посчитай', 'включи калькулятор', 'запусти калькулятор', 'калькулятор'): self.colculator,
         }
         # список имен и слов на которые откликается ассистент
         self.ndels = ['морган', 'морген', 'моргэн', 'морг', 'ладно', 'не могла бы ты', 'пожалуйста',
@@ -110,7 +114,7 @@ class Assistant:
             else:
                 self.talk("Некорректно назван номер!")
 
-    def contacts_reminder(self):
+    def contacts_reminder(self):    # метод напоминания номера телефона
         filename = 'numbers_list.txt'
         self.talk(choice(["Чей номер вам напомнить?", "Чей номер вы хотите знать?", "Чей номер вам нужен?"]))
         self.listen()
@@ -180,7 +184,7 @@ class Assistant:
         else:
             self.talk(choice(["На сегодня напоминаний нет", "На сегодня дел нет", "Сегодня дел никаких нет"]))
 
-    def time_converter(self, text):     # метод изменения текста в дату. пример: 12 января 2023 --> 01-12
+    def time_converter(self, text):     # метод изменения текста в дату. пример: 12 января --> 01-12
         text = text.replace('января', '01')
         text = text.replace('февраля', '02')
         text = text.replace('марта', '03')
@@ -196,23 +200,25 @@ class Assistant:
         text = str("-".join(text.split()[::-1]))
         return text
 
-    def time_back_converter(self, text):
+    def time_back_converter(self, text):    # метод изменения даты в текст. пример: 01-12 --> 12 января
         text = " ".join(text.split("-")[::-1])
-        text = text.replace('01', 'января')
-        text = text.replace('02', 'февраля')
-        text = text.replace('03', 'марта')
-        text = text.replace('04', 'апреля')
-        text = text.replace('05', 'мая')
-        text = text.replace('06', 'июня')
-        text = text.replace('07', 'июля')
-        text = text.replace('08', 'августа')
-        text = text.replace('09', 'сентября')
-        text = text.replace('10', 'октября')
-        text = text.replace('11', 'ноября')
-        text = text.replace('12', 'декабря')
-        return text
+        text1 = text[:2]
+        text2 = text[2:]
+        text2 = text2.replace('01', 'января')
+        text2 = text2.replace('02', 'февраля')
+        text2 = text2.replace('03', 'марта')
+        text2 = text2.replace('04', 'апреля')
+        text2 = text2.replace('05', 'мая')
+        text2 = text2.replace('06', 'июня')
+        text2 = text2.replace('07', 'июля')
+        text2 = text2.replace('08', 'августа')
+        text2 = text2.replace('09', 'сентября')
+        text2 = text2.replace('10', 'октября')
+        text2 = text2.replace('11', 'ноября')
+        text2 = text2.replace('12', 'декабря')
+        return text1 + text2
 
-    def del_text(self, index, count, filename):
+    def del_text(self, index, count, filename):     # метод удаления текста из файла по индексу строки (удаляет выбранное количество строк)
         file = open(filename)
         text = file.readlines()
 
@@ -223,7 +229,7 @@ class Assistant:
         file.write("".join(text))
         file.close()
 
-    def del_contact(self):
+    def del_contact(self):      # метод удаления контакта
         filename = 'numbers_list.txt'
         self.talk(choice(["Чей контакт хотите удалить?", "Чей номер вы хотите удалить?", "Чей номер вам не нужен?"]))
         self.listen()
@@ -237,14 +243,17 @@ class Assistant:
             for numb in range(len(text_list)):
                 if self.text in text_list[numb]:
                     self.del_text(numb, 2, filename)
-                    self.talk(choice(["Номер удален!", "Уже удалила.", "Сделано!"]))
+                    self.talk(choice(["Контакт удален!", "Уже удалила.", "Сделано!"]))
+                    break
                 else:
                     continue
+        else:
+            self.talk("Контакт не найден!")
 
-    def del_reminder(self):     # доделать
+    def del_reminder(self):     # метод удаления заметки
         filename = 'reminder_list.txt'
 
-        self.talk(choice(["Желаете прослушать все исеющиеся заметки?", "Хотите прослушать все имеющиеся заметки?"]))
+        self.talk(choice(["Желаете прослушать все имеющиеся заметки?", "Хотите прослушать все имеющиеся заметки?"]))
         self.listen()
         list = ['Хочу', 'Желаю', 'Да']
         for i in range(len(list)):
@@ -267,11 +276,13 @@ class Assistant:
             for numb in range(len(text_list)):
                 if self.text in text_list[numb]:
                     self.del_text(numb, 2, filename)
-                    self.talk(choice(["Номер удален!", "Уже удалила.", "Сделано!"]))
+                    self.talk(choice(["Заметка удалена!", "Уже удалила.", "Сделано!"]))
                 else:
                     continue
+        else:
+            self.talk("Напоминаний на эту дату не найдено!")
 
-    def del_reminder_init(self):
+    def del_reminder_init(self):    # метод автомотического удаления ненужных заметок
         filename = 'reminder_list.txt'
         text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
         month = int(str(datetime.date.today())[5:7])
@@ -283,7 +294,7 @@ class Assistant:
             else:
                 continue
 
-    def all_reminder(self):
+    def all_reminder(self):     # метод напоминания всех имеющихся заметок
         filename = 'reminder_list.txt'
         text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
 
@@ -296,7 +307,7 @@ class Assistant:
         else:
             self.talk(choice(["На сегодня напоминаний нет", "На сегодня дел нет", "Сегодня дел никаких нет"]))
 
-    def number_check(self, number):
+    def number_check(self, number):     # проверка корректности написания номера телефона
         if len(number) == 15:
             return True
         else:
@@ -304,33 +315,37 @@ class Assistant:
 
     def cleaner(self, text):
         self.text = text
+        if text is not None:
+            for i in self.ndels:  # Создание цикла для очистки слов находящихся в словаре words в запросе
+                self.text = self.text.replace(i, '').strip()  # Очистка ключевых слов, находящихся в словаре ndels с запроса
+                self.text = self.text.replace('  ', ' ').strip()  # Очистка ключевых слов, находящихся в словаре ndels с запроса
 
-        for i in self.ndels:  # Создание цикла для очистки слов находящихся в словаре words в запросе
-            self.text = self.text.replace(i, '').strip()  # Очистка ключевых слов, находящихся в словаре ndels с запроса
-            self.text = self.text.replace('  ', ' ').strip()  # Очистка ключевых слов, находящихся в словаре ndels с запроса
+            self.ans = self.text
 
-        self.ans = self.text
+            for i in range(len(self.commands)): # поиск совпадений в списке известных команд
+                k = fuzz.ratio(text, self.commands[i])
+                if (k > 70) & (k > self.j):
+                    self.ans = self.commands[i]
+                    self.j = k
 
-        for i in range(len(self.commands)): # поиск совпадений в списке известных команд
-            k = fuzz.ratio(text, self.commands[i])
-            if (k > 70) & (k > self.j):
-                self.ans = self.commands[i]
-                self.j = k
-
-        return str(self.ans)
+            return str(self.ans)
 
     def recognizer(self):  # метод распознавания речи /  главная функция
         self.text = self.cleaner(self.listen())
-        print(self.text)
-        print('______')
+        if self.text is not None:
+            print(self.text)
+            print('______')
 
-        if self.text.startswith(('открой', 'запусти', 'зайди', 'зайди на')):    # если просьба начинается с этих команд выполняется специальная функция
-            self.opener(self.text)
+            if self.text.startswith(('открой', 'запусти', 'зайди', 'зайди на')):    # если просьба начинается с этих команд выполняется специальная функция
+                self.opener(self.text)
 
-        for tasks in self.cmds:     # выбор и привод в действие нужной функции из списка команд
-            for task in tasks:
-                if fuzz.ratio(task, self.text) >= 80:
-                    self.cmds[tasks]()
+            for tasks in self.cmds:     # выбор и привод в действие нужной функции из списка команд
+                for task in tasks:
+                    if fuzz.ratio(task, self.text) >= 80:
+                        global active
+                        active = True
+                        self.cmds[tasks]()
+
 
         self.engine.runAndWait()
         self.engine.stop()
@@ -366,18 +381,20 @@ class Assistant:
             cfr = Assistant.settings['SETTINGS']['fr']
             if cfr != 1:
                 file = open('settings.ini', 'w', encoding='UTF-8')
-                file.write('[SETTINGS]\ncountry = UA\nplace = Kharkov\nfr = 1')
+                file.write('[SETTINGS]\ncountry = RU\nplace = Moscow\nfr = 1')
                 file.close()
         except Exception as e:
             print('Перезапустите Ассистента!', e)
             file = open('settings.ini', 'w', encoding='UTF-8')
-            file.write('[SETTINGS]\ncountry = UA\nplace = Kharkov\nfr = 1')
+            file.write('[SETTINGS]\ncountry = RU\nplace = Moscow\nfr = 1')
             file.close()
 
     def quite(self):    # метод выключения голосового ассистента по команде
         self.talk(choice(['Надеюсь мы скоро увидимся', 'Рада была помочь', 'Пока пока', 'Я отключаюсь']))
         self.engine.stop()
         system('cls')
+        global active
+        active = False
         #sys.exit(0)
 
     def shut(self):     # метод выключения компьютера по команде с подтверждением
@@ -404,7 +421,8 @@ class Assistant:
         place = Assistant.settings['SETTINGS']['place']
         country = Assistant.settings['SETTINGS']['country']  # Переменная для записи страны/кода страны
         country_and_place = place + ", " + country  # Запись города и страны в одну переменную через запятую
-        owm = OWM('ВАШ API KEY')  # Ваш ключ с сайта open weather map
+        #owm = OWM('84061a2a5ff54b490d63bd38d557b06d')  # Ваш ключ с сайта open weather map
+        owm = OWM('0ca3b9ee1b369a0535434d07a6c572e8')  # Ваш ключ с сайта open weather map
         mgr = owm.weather_manager()  # Инициализация owm.weather_manager()
         observation = mgr.weather_at_place(country_and_place)
         # Инициализация mgr.weather_at_place() И передача в качестве параметра туда страну и город
@@ -430,18 +448,44 @@ class Assistant:
 
     def listen(self):  # метод прослушивания микрофона и обработки запроса
         with sr.Microphone() as source:  # Запуск прослушки микрофона и объявление что sr.Microphone() мы используем как source
+
             print(colorama.Fore.LIGHTGREEN_EX + "Я вас слушаю...")
             self.r.adjust_for_ambient_noise(source)  # Этот метод нужен для автоматического понижения уровня шума
-            audio = self.r.listen(source)  # Инициализация r.listen(source) в переменную audio
-            try:  # Создание обработчика ошибок
-                self.text = self.r.recognize_google(audio, language="ru-RU").lower()  # Распознавание и преобразование речи в текст
+            try:
+                audio = self.r.listen(source, timeout=10)  # Инициализация r.listen(source) в переменную audio
+                #global active
+                #active = True
+                try:  # Создание обработчика ошибок
+                    self.text = self.r.recognize_google(audio,
+                                                        language="ru-RU").lower()  # Распознавание и преобразование речи в текст
+                    global active
+                    active = True
+                except Exception as e:
+                    print(e)
+                return self.text  # Возвращаем переменную для передачи данных в другую функцию
             except Exception as e:
                 print(e)
-            return self.text  # Возвращаем переменную для передачи данных в другую функцию
 
 
-Assistant().cfile()
-def start():    # функция старт
-    Assistant().del_reminder_init()
-    while True:  # Бесконечный цикл
-        Assistant().recognizer()  # Вызов функции recognizer()
+    def start(self):    # функция старт
+        Assistant().cfile()
+        Assistant().del_reminder_init()
+        global active
+        Assistant().cfile()
+        c = 0
+        cc = time.time()
+        while c <= 60 and not(active):  # цикл слушания
+            Assistant().recognizer()  # Вызов функции recognizer()
+            if active:
+                c = 0
+                cc = time.time()
+                active = False
+            else:
+                c = time.time() - cc
+                print(c)
+                break
+        print('Выключился')
+
+
+if __name__ == '__main__':
+    Assistant().start()
