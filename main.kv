@@ -1,0 +1,54 @@
+<MainWidget>:
+    orientation: 'vertical'
+    text_label: text
+    btn_start: start
+    btn_reminder: reminder
+
+    Button:
+        id: start
+        text: 'Старт'
+        background_color: [0,0,1,1]
+        font_size: 18
+        size: (400, 100)
+        size_hint: (None, None)
+        on_press: root.on_press_button_start()
+
+    Button:
+        id: reminder
+        text: 'Заметки'
+        background_color: [0,0,1,1]
+        font_size: 18
+        size: (400, 100)
+        size_hint: (None, None)
+        on_press: root.on_press_button_reminder()
+
+    Button:
+        id: contacts
+        text: 'Телефонная книжка'
+        background_color: [0,0,1,1]
+        font_size: 18
+        size: (400, 100)
+        size_hint: (None, None)
+        on_press: root.on_press_button_contacts()
+
+    Button:
+        id: instruction
+        text: 'Инструкция'
+        background_color: [0,0,1,1]
+        font_size: 18
+        size: (400, 100)
+        size_hint: (None, None)
+        on_press: root.on_press_button_instruction()
+
+    Button:
+        id: cleaner
+        text: 'Очистить'
+        background_color: [0,0,1,1]
+        font_size: 18
+        size: (400, 100)
+        size_hint: (None, None)
+        on_press: root.on_press_button_cleaner()
+
+    Label:
+        id: text
+        size: (400, 100)
