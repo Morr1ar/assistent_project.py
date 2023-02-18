@@ -1,5 +1,7 @@
 from assistent_project import Assistant
 
+import func
+
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy import Config
@@ -13,65 +15,49 @@ class MainWidget(BoxLayout):
     btn_contacts = ObjectProperty()
     btn_instruction = ObjectProperty()
     btn_cleaner = ObjectProperty()
+    scroll = ObjectProperty()
+
+    def hide_all(self):
+        self.btn_start.text = ''
+        self.btn_start.size = (0, 0)
+        self.btn_reminder.text = ''
+        self.btn_reminder.size = (0, 0)
+        self.btn_contacts.text = ''
+        self.btn_contacts.size = (0, 0)
+        self.btn_instruction.text = ''
+        self.btn_instruction.size = (0, 0)
+        self.btn_cleaner.size = (400, 100)
+        self.btn_cleaner.text = 'Назад'
 
     def on_press_button_start(self):
         Assistant().start()
 
     def on_press_button_reminder(self):
         filename = 'reminder_list.txt'
-        text = ""
-        text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
-        if len(text_list) >= 15:
-            count = 15
-        else:
-            count = len(text_list)
-        for i in range(count):
-            if len(text_list[i]) > 20:
-                x = 0
-                while x < len(text_list[i]):
-                    text += text_list[i][x:x + 20] + '\n'
-                    x += 20
-            else:
-                text += text_list[i] + '\n'
-        self.text_label.text = text
+        self.hide_all()
+        self.text_label.text = func.text_wrap(filename)
 
     def on_press_button_contacts(self):
         filename = 'numbers_list.txt'
-        text = ""
-        text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
-        if len(text_list) >= 15:
-            count = 15
-        else:
-            count = len(text_list)
-        for i in range(count):
-            if len(text_list[i]) > 20:
-                x = 0
-                while x < len(text_list[i]):
-                    text += text_list[i][x:x + 20] + '\n'
-                    x += 20
-            else:
-                text += text_list[i] + '\n'
-        self.text_label.text = text
+        self.hide_all()
+        self.text_label.text = func.text_wrap(filename)
 
     def on_press_button_instruction(self):
         filename = 'instruction.txt'
-        text = ""
-        text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
-        if len(text_list) >= 15:
-            count = 15
-        else:
-            count = len(text_list)
-        for i in range(count):
-            if len(text_list[i]) > 20:
-                x = 0
-                while x < len(text_list[i]):
-                    text += text_list[i][x:x + 20] + '\n'
-                    x += 20
-            else:
-                text += text_list[i] + '\n'
-        self.text_label.text = text
+        self.hide_all()
+        self.text_label.text = func.text_wrap(filename)
 
     def on_press_button_cleaner(self):
+        self.btn_start.size = (400, 100)
+        self.btn_start.text = 'Старт'
+        self.btn_reminder.size = (400, 100)
+        self.btn_reminder.text = 'Справочник'
+        self.btn_contacts.size = (400, 100)
+        self.btn_contacts.text = 'Телефонная книжка'
+        self.btn_instruction.size = (400, 100)
+        self.btn_instruction.text = 'Инструкция'
+        self.btn_cleaner.size = (0, 0)
+        self.btn_cleaner.text = ''
         self.text_label.text = ""
 
 
