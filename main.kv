@@ -3,6 +3,10 @@
     text_label: text
     btn_start: start
     btn_reminder: reminder
+    btn_contacts: contacts
+    btn_instruction: instruction
+    btn_cleaner: cleaner
+    scroll: scroll
 
     Button:
         id: start
@@ -42,13 +46,27 @@
 
     Button:
         id: cleaner
-        text: 'Очистить'
+        text: 'Назад'
         background_color: [0,0,1,1]
         font_size: 18
-        size: (400, 100)
+        size: (0, 0)
         size_hint: (None, None)
         on_press: root.on_press_button_cleaner()
 
-    Label:
-        id: text
-        size: (400, 100)
+    ScrollView:
+        id: scroll
+        do_scroll_x: False
+        do_scroll_y: True
+        bar_width: 20
+        scroll_timeout: 100
+        scroll_type: ['bars','content']
+
+        Label:
+            id: text
+            size_hint_y: 1.2
+            height: self.texture_size[1]
+            valign: 'top'
+            halign: 'center'
+            font_size: 18
+            padding: (0, 100)
+            text_size: (400, 1000)
