@@ -15,6 +15,7 @@ class MainWidget(BoxLayout):
     btn_contacts = ObjectProperty()
     btn_instruction = ObjectProperty()
     btn_cleaner = ObjectProperty()
+    btn_finish = ObjectProperty()
     scroll = ObjectProperty()
 
     def hide_all(self):
@@ -26,11 +27,16 @@ class MainWidget(BoxLayout):
         self.btn_contacts.size = (0, 0)
         self.btn_instruction.text = ''
         self.btn_instruction.size = (0, 0)
+        self.btn_finish.text = ''
+        self.btn_finish.size = (0, 0)
         self.btn_cleaner.size = (400, 100)
         self.btn_cleaner.text = 'Назад'
 
     def on_press_button_start(self):
         Assistant().start()
+
+    def on_press_button_finish(self):
+        pass
 
     def on_press_button_reminder(self):
         filename = 'reminder_list.txt'
@@ -58,6 +64,8 @@ class MainWidget(BoxLayout):
         self.btn_instruction.text = 'Инструкция'
         self.btn_cleaner.size = (0, 0)
         self.btn_cleaner.text = ''
+        self.btn_finish.size = (400, 100)
+        self.btn_finish.text = 'Конец'
         self.text_label.text = ""
 
 
