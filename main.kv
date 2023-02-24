@@ -6,6 +6,7 @@
     btn_contacts: contacts
     btn_instruction: instruction
     btn_cleaner: cleaner
+    btn_finish: finish
     scroll: scroll
 
     Button:
@@ -52,6 +53,15 @@
         size: (0, 0)
         size_hint: (None, None)
         on_press: root.on_press_button_cleaner()
+
+    Button:
+        id: finish
+        text: 'Конец'
+        background_color: [0,0,1,1]
+        font_size: 18
+        size: (400, 100)
+        size_hint: (None, None)
+        on_press: root.on_press_button_finish()
 
     ScrollView:
         id: scroll
