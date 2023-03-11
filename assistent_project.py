@@ -1,4 +1,5 @@
 # Импорт всех необходимых модулей
+import os
 import pyttsx3  # Модуль для воспроизведения текста в речь
 import speech_recognition as sr  # Модуль для прослушивания микрофона
 import colorama
@@ -12,6 +13,7 @@ from pyowm.utils.config import get_default_config
 import webbrowser  # Модуль для выполнения запросов и открытия вкладок в вашем браузере
 import configparser
 import time
+import json
 
 active = False
 
@@ -46,9 +48,10 @@ class Assistant:
             ('номер телефона', 'список контактов', 'контакты'): self.contacts_reminder,
             ('удалить контакт', 'удали контакт'): self.del_contact,
             ('удалить заметку', 'удали заметку'): self.del_reminder,
-            ('добавить рецепт', 'новый рецепт', 'книга рецептов', 'добавить новы рецепт'): self.save_recipes,
+            ('добавить рецепт', 'новый рецепт', 'добавить новый рецепт'): self.save_recipes,
             ('удалить рецепт'): self.del_recipes,
             ('напомни рецепт', 'напомни рецепт блюда', 'книга рецептов'): self.recipes_reminder,
+            ('гугл закладки', 'google закладки', 'закладки'): self.google_marks,
             ('какая погода', 'погода', 'погода на улице', 'какая погода на улице'): self.weather,
             ('посчитай', 'включи калькулятор', 'запусти калькулятор', 'калькулятор'): self.colculator,
         }
@@ -74,11 +77,13 @@ class Assistant:
             'добавить рецепт', 'новый рецепт', 'книга рецептов', 'добавить новы рецепт',
             'удалить рецепт',
             'напомни рецепт', 'напомни рецепт блюда', 'книга рецептов',
+            'гугл закладки', 'google закладки', 'закладки',
         ]
 
     def text_save(self, text, file_name):   # метод записывания текста в выбранный файл
         file = open(file_name, 'a+', encoding="utf-8")
-        self.talk("Записываю...")
+        if file_name != 'bookmarks.txt':
+            self.talk("Записываю...")
         file.write(text + "\n")
         file.close()
 
@@ -106,6 +111,24 @@ class Assistant:
         file.write(new_text)
         file.close()
 
+    def parse_bookmarks(self):
+        filename = 'bookmarks.txt'
+        homepath = os.getenv('USERPROFILE')
+
+        open(filename, 'w', encoding='utf-8').close()
+
+        f = open(homepath + r'\AppData\Local\Google\Chrome\User Data\Default\Bookmarks', encoding='utf-8')
+        text = json.load(f)
+
+        text = text['roots']
+
+        key = 'bookmark_bar'
+        key1 = 'children'
+        for key2 in text[key][key1]:
+            self.text_save(key2['name'], filename)
+            self.text_save(key2['url'], filename)
+        f.close()
+
     def number_check(self, number):     # проверка корректности написания номера телефона
         if len(number) == 15:
             return True
@@ -118,6 +141,31 @@ class Assistant:
             if (k > 70) & (k > self.j):
                 text = list[i]
                 self.j = k
+
+    def google_marks(self):     # добавиь фузратио
+        self.parse_bookmarks()
+        filename = "bookmarks.txt"
+        text_list = [line.strip() for line in open(filename, encoding="utf-8").readlines()]
+        self.talk("Вот список всех ваших закладок:")
+        numb = 1
+        for i, mark in enumerate(text_list):
+            if i % 2 == 0:
+                print(str(numb) + ': ' + mark, text_list[i + 1])
+                numb += 1
+        self.talk('Какую открыть?')
+        while True:
+            print('Скажите номер')
+            self.listen()
+            try:
+                self.talk('Перехожу...')
+                webbrowser.open(text_list[int(self.text) * 2 - 1])
+                break
+            except ValueError:
+                self.talk('Повторите, пожалуйста')
+            except IndexError:
+                self.talk('Такой закладки нет')
+
+
 
     def contacts_list_save(self):   # метод записывания нового контакта в файл с контактами
         filename = "numbers_list.txt"
@@ -352,6 +400,19 @@ class Assistant:
         else:
             self.talk("Рецепта такого блюда у меня нет")
 
+    def web_search(self, text):
+        words = ('найди', 'найти', 'ищи', 'кто такой', 'что такое')
+        remove = ["пожалуйста", "ладно", "давай", "сейчас"]  # Создание списка со слов которые будут удалены из запроса
+        if text.startswith(words):  # Проверка начинается, ли наш голосовой запрос с ключевых слов записанных в словаре words
+            for i in words:  # Создание цикла для очистки слов находящихся в словаре words в запросе
+                text = text.replace(i, '')  # Очистка ключевых слов, находящихся в словаре words с запроса
+            for j in remove:  # Создание цикла для очистки слов находящихся в списке remove в запросе
+                text = text.replace(j, '')  # Очистки слов находящихся в списке remove в запросе
+                text = text.strip()  # Преобразование переменной search в строку
+            print(text)  # Вывод текста нашего запроса
+            webbrowser.open(f'https://www.google.com/search?q={text}&oq={text}'
+                            f'81&aqs=chrome..69i57j46i131i433j0l5.2567j0j7&sourceid=chrome&ie=UTF-8')  # выполнение запроса в браузере
+
     def cleaner(self, text):
         self.text = text
         if text is not None:
@@ -370,6 +431,9 @@ class Assistant:
         if self.text is not None:
             print(self.text)
             print('______')
+
+            if self.text.startswith(('найди', 'найти', 'ищи', 'кто такой', 'что такое')):
+                self.web_search(self.text)
 
             if self.text.startswith(('открой', 'запусти', 'зайди', 'зайди на')):    # если просьба начинается с этих команд выполняется специальная функция
                 self.opener(self.text)
@@ -394,7 +458,7 @@ class Assistant:
             ('youtube', 'ютуб', 'ютюб'): 'https://youtube.com/',
             ('вк', 'вконтакте', 'vk'): 'https:vk.com/feed',
             ('браузер', 'интернет', 'browser'): 'https://google.com/',
-            ('insta', 'instagram', 'инста', 'инсту'): 'https://www.instagram.com/',
+            ('insta', 'instagram', 'инста', 'инсту', 'инстаграм'): 'https://www.instagram.com/',
             ('почта', 'почту', 'gmail', 'гмейл', 'гмеил', 'гмаил'): 'http://gmail.com/',
         }
         j = 0
@@ -508,7 +572,7 @@ class Assistant:
         Assistant().cfile()
         c = 0
         cc = time.time()
-        while c <= 60 and not(active):  # цикл слушания
+        while c <= 200 and not(active):  # цикл слушания
             Assistant().recognizer()  # Вызов функции recognizer()
             if active:
                 c = 0
