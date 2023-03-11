@@ -1,3 +1,5 @@
+import sys
+
 from assistent_project import Assistant
 
 import func
@@ -14,6 +16,7 @@ class MainWidget(BoxLayout):
     btn_reminder = ObjectProperty()
     btn_contacts = ObjectProperty()
     btn_instruction = ObjectProperty()
+    btn_bookmarks = ObjectProperty()
     btn_cleaner = ObjectProperty()
     btn_finish = ObjectProperty()
     scroll = ObjectProperty()
@@ -27,6 +30,8 @@ class MainWidget(BoxLayout):
         self.btn_contacts.size = (0, 0)
         self.btn_instruction.text = ''
         self.btn_instruction.size = (0, 0)
+        self.btn_bookmarks.text = ''
+        self.btn_bookmarks.size = (0, 0)
         self.btn_finish.text = ''
         self.btn_finish.size = (0, 0)
         self.btn_cleaner.size = (400, 100)
@@ -36,7 +41,7 @@ class MainWidget(BoxLayout):
         Assistant().start()
 
     def on_press_button_finish(self):
-        pass
+        sys.exit(0)
 
     def on_press_button_reminder(self):
         filename = 'reminder_list.txt'
@@ -53,6 +58,11 @@ class MainWidget(BoxLayout):
         self.hide_all()
         self.text_label.text = func.text_wrap(filename)
 
+    def on_press_button_googlemarks(self):
+        filename = 'bookmarks.txt'
+        self.hide_all()
+        self.text_label.text = func.text_wrap(filename)
+
     def on_press_button_cleaner(self):
         self.btn_start.size = (400, 100)
         self.btn_start.text = 'Старт'
@@ -62,6 +72,8 @@ class MainWidget(BoxLayout):
         self.btn_contacts.text = 'Телефонная книжка'
         self.btn_instruction.size = (400, 100)
         self.btn_instruction.text = 'Инструкция'
+        self.btn_bookmarks.size = (400, 100)
+        self.btn_bookmarks.text = 'Google закладки'
         self.btn_cleaner.size = (0, 0)
         self.btn_cleaner.text = ''
         self.btn_finish.size = (400, 100)
