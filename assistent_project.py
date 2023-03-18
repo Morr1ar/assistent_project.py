@@ -564,10 +564,19 @@ class Assistant:
             except Exception as e:
                 print(e)
 
+    def control_files(self):  # функция проверки наличия файлов
+        file_path = ['reminder_list.txt', 'number_list.txt', 'recipes_list.txt', 'instruction.txt']
+        for file in file_path:
+            if not (os.path.exists(file)):
+                f = open(file, 'w+')
+                if file == 'instruction.txt':
+                    f.write('''Какой-то текст инструкции''')
+                f.close()
 
     def start(self):    # функция старт
-        Assistant().cfile()
-        Assistant().del_reminder_init()
+        self.cfile()
+        self.del_reminder_init()
+        self.control_files()
         global active
         Assistant().cfile()
         c = 0
